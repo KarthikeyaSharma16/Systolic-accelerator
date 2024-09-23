@@ -1,2 +1,7 @@
-# Systolic-accelerator
-This repository contains the source code for a FP32 based 4x4 Systolic-array accelerator.
+## Instructions to install Icarus Verilog
+`sudo apt install iverilog`  
+
+`sudo apt install gtkwave`
+
+## Run script
+`./run.sh`
