@@ -10,17 +10,15 @@ module tb_fp_mult;
 
   // Clock generation
   initial begin
-      in_a = 32'b00000000000000000000000000000000; in_b = 32'b00000000000000000000000000000000;
-      clk = 0;
-      rst = 1; // Keep reset high initially
+      rst = 0;
       #20;
-      rst = 0; // Assert reset low for at least 1 cycle
-      #20;
-      rst = 1; // De-assert reset
+      rst = 1;
   end
 
-
-  always #10 clk = ~clk;
+  initial begin
+    clk = 0;
+    forever #10 clk = ~clk;
+  end
 
   initial begin
     $monitor("Time = %0t | clk = %b | in_a = %0x, in_b = %0x, out_r = %0x", $time, clk, in_a, in_b, out_r);
@@ -28,20 +26,22 @@ module tb_fp_mult;
 
   // Apply inputs
   initial begin
+    in_a = 32'b0; in_b = 32'b0;
+    repeat(5) @(posedge clk);
 
-    #50;
+    @(posedge clk);
     in_a = 32'b01000000000000000000000000000000; in_b = 32'b01000000000000000000000000000000;
 
-    #20;
+    @(posedge clk);
     in_a = 32'b01000000100000000000000000000000; in_b = 32'b01000000100000000000000000000000;
 
-    #20;
+    @(posedge clk);
     in_a = 32'b01000001000000000000000000000000; in_b = 32'b01000001000000000000000000000000;
 
-    #20;
+    @(posedge clk);
     in_a = 32'b01000001100000000000000000000000; in_b = 32'b01000001100000000000000000000000;
 
-    #20;
+    @(posedge clk);
     in_a = 32'b01000010100000000000000000000000; in_b = 32'b01000010100000000000000000000000;
 
     #100;

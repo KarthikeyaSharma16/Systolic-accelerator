@@ -45,6 +45,7 @@ module fp_mult (
             exp_b_s1 <= b[30:23];
             mantissa_a_s1 <= {1'b1, a[22:0]};
             mantissa_b_s1 <= {1'b1, b[22:0]};
+            $display("a = %0x, b = %0x, mantissa_a_s1 = %0x, mantissa_b_s1 = %0x, exp_a_s1 = %0x, exp_b_s1 = %0x", a, b, mantissa_a_s1, mantissa_b_s1, exp_a_s1, exp_b_s1);
         end
     end
     
@@ -56,9 +57,17 @@ module fp_mult (
             sign_s2 <= 0;
         end
         else begin
-            mantissa_r_s2 <= mantissa_a_s1 * mantissa_b_s1;
-            exp_r_s2 <= exp_a_s1 + exp_b_s1 - 127;
-            sign_s2 <= sign_a_s1 ^ sign_b_s1;
+            if ((exp_a_s1 == 8'b0 && mantissa_a_s1[22:0] == 23'b0) || exp_b_s1 == 8'b0 && mantissa_b_s1[22:0] == 23'b0) begin
+                mantissa_r_s2 <= 0;
+                exp_r_s2 <= 0;
+                sign_s2 <= 0; 
+            end
+            else begin
+                mantissa_r_s2 <= mantissa_a_s1 * mantissa_b_s1;
+                exp_r_s2 <= exp_a_s1 + exp_b_s1 - 127;
+                sign_s2 <= sign_a_s1 ^ sign_b_s1;
+                $display("mantissa_r_s2 = %0x, exp_r_s2 = %0x, sign_s2 = %0x", mantissa_r_s2, exp_r_s2, sign_s2); 
+            end
         end
     end
 
@@ -74,11 +83,13 @@ module fp_mult (
                 mantissa_r_s3 <= mantissa_r_s2[46:24];
                 exp_r_s3 <= exp_r_s2 + 1;
                 sign_s3 <= sign_s2;
+                $display("mantissa_r_s3 = %0x, exp_r_s3 = %0x, sign_s3 = %0x", mantissa_r_s3, exp_r_s3, sign_s3);
             end
             else begin
                 mantissa_r_s3 <= mantissa_r_s2[45:23];
                 exp_r_s3 <= exp_r_s2;
                 sign_s3 <= sign_s2;
+                $display("mantissa_r_s3 = %0x, exp_r_s3 = %0x, sign_s3 = %0x", mantissa_r_s3, exp_r_s3, sign_s3);
             end
         end
     end

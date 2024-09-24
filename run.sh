@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "Compiling Design and Testbench Files!"
-iverilog -g2012 -o "$OUTPUT_DIR"/testbench fp_add.sv fp_mult.sv PE.sv tb_PE.sv
+iverilog -g2012 -o "$OUTPUT_DIR"/testbench fp_mult.sv fp_add.sv PE.sv tb_PE.sv
 
 if [ $? -ne 0 ]; then
     echo "Compilation failed!"
