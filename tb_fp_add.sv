@@ -10,16 +10,17 @@ module tb_fp_add;
 
   // Clock generation
   initial begin
-    fp_add_a = 32'b0; fp_add_b = 32'b0;
     clk = 0;
-    rst = 1; // Keep reset high initially
-    #10;
-    rst = 0; // Assert reset low for at least 1 cycle
-    #50;
-    rst = 1; // De-assert reset
+    forever #10 clk = ~clk;
   end
 
-  always #10 clk = ~clk;
+  initial begin
+    rst = 1;
+    #20;
+    rst = 0;
+    #20;
+    rst = 1;
+  end
 
   initial begin
     $monitor("Time = %0t | clk = %b | rst = %0b | fp_add_a = %0x, fp_add_b = %0x, fp_add_r = %0x", $time, clk, rst, fp_add_a, fp_add_b, fp_add_r);
@@ -27,22 +28,22 @@ module tb_fp_add;
 
   // Apply inputs
   initial begin
-    #50;
     fp_add_a = 32'b0; fp_add_b = 32'b0;
+    repeat(5) @(posedge clk);
     
-    #20;
-    fp_add_a = 32'b01000000000000000000000000000000; fp_add_b = 32'b01000000000000000000000000000000;
+    @(posedge clk);
+    fp_add_a = 32'h40000000; fp_add_b = 32'h41000000;
 
-    #20;
-    fp_add_a = 32'h40800000; fp_add_b = 32'h40800000;
+    @(posedge clk);
+    fp_add_a = 32'h40800000; fp_add_b = 32'h40000000;
 
-    #20;
+    @(posedge clk);
     fp_add_a = 32'h41000000; fp_add_b = 32'h41000000;
 
-    #20;
-    fp_add_a = 32'h41800000; fp_add_b = 32'h41800000;
+    @(posedge clk);
+    fp_add_a = 32'h41800000; fp_add_b = 32'h0;
 
-    #100;
+    #150;
     $finish();
   end
 

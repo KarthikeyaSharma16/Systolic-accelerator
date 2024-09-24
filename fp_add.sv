@@ -22,6 +22,8 @@ module fp_add
     logic [7:0] exp_b_s1;
     logic [23:0] mantissa_b_s1;
     logic larger_mantissa_s1;
+    logic is_a_zero;
+    logic is_b_zero;
 
     //Stage-2
     logic [7:0] exp_r_s2;
@@ -48,6 +50,8 @@ module fp_add
            exp_b_s1 <= 0;
            mantissa_b_s1 <= 0;
            larger_mantissa_s1 <= 0;
+           is_a_zero <= 0;
+           is_b_zero <= 0;
         end
         else begin
            sign_a_s1 <= PE_a[31];
@@ -56,6 +60,9 @@ module fp_add
            sign_b_s1 <= PE_b[31];
            exp_b_s1 <= PE_b[30:23];
            mantissa_b_s1 <= {1'b1, PE_b[22:0]};
+
+           is_a_zero <= (PE_a[30:23] == 8'b0 && PE_a[22:0] == 23'b0);
+           is_b_zero <= (PE_b[30:23] == 8'b0 && PE_b[22:0] == 23'b0);
 
            // Compare original mantissas and store which one is larger
            if (exp_a_s1 > exp_b_s1 || (exp_a_s1 == exp_b_s1 && mantissa_a_s1 > mantissa_b_s1)) begin
@@ -74,18 +81,32 @@ module fp_add
             exp_r_s2 <= 0;
         end
         else begin
-           if (exp_a_s1 == exp_b_s1) begin
-                mantissa_r_s2 <= mantissa_a_s1 + mantissa_b_s1;
+           if (is_a_zero && is_b_zero) begin
+                mantissa_r_s2 <= 0;
+                exp_r_s2 <= 0;
+           end
+           else if (!is_a_zero && is_b_zero) begin
+                mantissa_r_s2 <= mantissa_a_s1;
+                exp_r_s2 <= exp_a_s1;
+           end
+           else if (is_a_zero && !is_b_zero) begin
+                mantissa_r_s2 <= mantissa_b_s1;
                 exp_r_s2 <= exp_b_s1;
            end
-           else if (exp_a_s1 < exp_b_s1) begin
-                mantissa_r_s2 <= mantissa_a_s1 >> (exp_b_s1 - exp_a_s1) + mantissa_b_s1;
-                exp_r_s2 <= exp_b_s1;
-            end 
-            else begin
-                mantissa_r_s2 <= mantissa_b_s1 >> (exp_a_s1 - exp_b_s1) + mantissa_a_s1;
-                exp_r_s2 <= exp_a_s1;
-            end
+           else begin
+                if (exp_a_s1 == exp_b_s1) begin
+                    mantissa_r_s2 <= mantissa_a_s1 + mantissa_b_s1;
+                    exp_r_s2 <= exp_b_s1;
+                end
+                else if (exp_a_s1 < exp_b_s1) begin
+                    mantissa_r_s2 <= (mantissa_a_s1 >> (exp_b_s1 - exp_a_s1)) + mantissa_b_s1;
+                    exp_r_s2 <= exp_b_s1;
+                end 
+                else begin
+                    mantissa_r_s2 <= (mantissa_b_s1 >> (exp_a_s1 - exp_b_s1)) + mantissa_a_s1;
+                    exp_r_s2 <= exp_a_s1;
+                end
+           end
         end
     end
 
@@ -99,7 +120,7 @@ module fp_add
             mantissa_r_s3_temp = mantissa_r_s2;
             exp_r_s3_temp = exp_r_s2;
 
-            // Shift left to normalize mantissa
+            // Shift right to normalize mantissa
             while (mantissa_r_s3_temp[23] == 0 && exp_r_s3_temp > 0) begin
                 mantissa_r_s3_temp = mantissa_r_s3_temp >> 1;
                 exp_r_s3_temp = exp_r_s3_temp + 1;
@@ -141,14 +162,27 @@ module fp_add
             PE_result <= 0;
         end
         else begin
-            if (exp_r_s4 > 8'hFF) begin
-                PE_result <= {sign_r_s4, 8'hFF, 23'b0};
-            end
-            else if (exp_r_s4 < 8'h00) begin
-                PE_result <= {sign_r_s4, 8'h00, 23'b0};
+            if (exp_r_s4 == 8'b0 && mantissa_r_s4 == 24'b0) begin
+                if (is_a_zero && is_b_zero) begin
+                    PE_result <= 32'b0;
+                end
+                else if (is_a_zero) begin
+                    PE_result <= {sign_b_s1, 31'b0};
+                end
+                else if (is_b_zero) begin
+                    PE_result <= {sign_a_s1, 31'b0};
+                end 
             end
             else begin
-                PE_result <= {sign_r_s4, exp_r_s4[7:0], mantissa_r_s4[22:0]}; 
+                if (exp_r_s4 > 8'hFF) begin
+                    PE_result <= {sign_r_s4, 8'hFF, 23'b0};
+                end
+                else if (exp_r_s4 < 8'h00) begin
+                    PE_result <= {sign_r_s4, 8'h00, 23'b0};
+                end
+                else begin
+                    PE_result <= {sign_r_s4, exp_r_s4[7:0], mantissa_r_s4[22:0]}; 
+                end
             end
         end
     end

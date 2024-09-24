@@ -12,6 +12,9 @@ module PE (
     logic [31:0] mult_out;
     logic [31:0] add_out;
 
+    fp_mult uut_1(clk, rst, PE_in_a, PE_in_b, mult_out);
+    fp_add uut_2(clk, rst, accumulated_value, mult_out, add_out);
+    
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
             accumulated_value <= 0;
@@ -20,9 +23,6 @@ module PE (
             accumulated_value <= add_out;
         end
     end
-
-    fp_mult uut_1(clk, rst, PE_in_a, PE_in_b, mult_out);
-    fp_add uut_2(clk, rst, accumulated_value, mult_out, add_out);
 
     assign PE_out_r = accumulated_value;
 

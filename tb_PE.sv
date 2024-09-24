@@ -10,16 +10,17 @@ module tb_PE;
 
   // Clock generation
   initial begin
-    PE_a = 32'b0; PE_b = 32'b0;
     clk = 0;
-    rst = 1; // Keep reset high initially
-    #10;
-    rst = 0; // Assert reset low for at least 1 cycle
-    #50;
-    rst = 1; // De-assert reset
+    forever #10 clk = ~clk;
   end
 
-  always #10 clk = ~clk;
+  initial begin
+    rst = 1;
+    #20;
+    rst = 0;
+    #20;
+    rst = 1;
+  end
 
   initial begin
     $monitor("Time = %0t | clk = %b | rst = %0b | PE_a = %0x, PE_b = %0x, PE_r = %0x", $time, clk, rst, PE_a, PE_b, PE_r);
@@ -27,22 +28,22 @@ module tb_PE;
 
   // Apply inputs
   initial begin
-    #50;
     PE_a = 32'b0; PE_b = 32'b0;
+    repeat(5) @(posedge clk);
     
-    #20;
-    PE_a = 32'b01000000000000000000000000000000; PE_b = 32'b01000000000000000000000000000000;
+    @(posedge clk);
+    PE_a = 32'b01000000000000000000000000000000; PE_b = 32'h41000000;
 
-    #20;
-    PE_a = 32'h40800000; PE_b = 32'h40800000;
+    @(posedge clk);
+    PE_a = 32'h40800000; PE_b = 32'h41000000;
 
-    #20;
+    @(posedge clk);
     PE_a = 32'h41000000; PE_b = 32'h41000000;
 
-    #20;
-    PE_a = 32'h41800000; PE_b = 32'h41800000;
+    @(posedge clk);
+    PE_a = 32'h41800000; PE_b = 32'h41000000;
 
-    #100;
+    #300;
     $finish();
   end
 
