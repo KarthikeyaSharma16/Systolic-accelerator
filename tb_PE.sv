@@ -27,7 +27,6 @@ module tb_PE;
   // Apply inputs
   initial begin
     PE_a = 32'b0; PE_b = 32'b0;
-    repeat(5) @(posedge clk);
     
     repeat(5) @(posedge clk);
     PE_a = 32'b01000000000000000000000000000000; PE_b = 32'h41000000;
