@@ -29,19 +29,19 @@ module tb_PE;
     PE_a = 32'b0; PE_b = 32'b0;
     repeat(5) @(posedge clk);
     
-    @(posedge clk);
+    repeat(5) @(posedge clk);
     PE_a = 32'b01000000000000000000000000000000; PE_b = 32'h41000000;
 
-    @(posedge clk);
+    repeat(5) @(posedge clk);
     PE_a = 32'h40800000; PE_b = 32'h41000000;
 
-    @(posedge clk);
+    repeat(5) @(posedge clk);
     PE_a = 32'h41000000; PE_b = 32'h41000000;
 
-    @(posedge clk);
+    repeat(5) @(posedge clk);
     PE_a = 32'h41800000; PE_b = 32'h41000000;
 
-    #300;
+    #400;
     $finish();
   end
 

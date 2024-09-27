@@ -11,16 +11,41 @@ module PE (
     logic [31:0] accumulated_value;
     logic [31:0] mult_out;
     logic [31:0] add_out;
+    logic en;
+    logic [2:0] counter;
 
-    fp_mult uut_1(clk, rst, PE_in_a, PE_in_b, mult_out);
-    fp_add uut_2(clk, rst, accumulated_value, mult_out, add_out);
+    //pipeline latch
+    logic [31:0] mult_latch;
+
+    fp_mult uut_1(clk, rst, en, PE_in_a, PE_in_b, mult_out);
+
+    always@(posedge clk or negedge rst) begin
+        if (!rst) begin
+            mult_latch <= 32'b0;
+        end 
+        else begin
+            mult_latch <= mult_out;
+        end   
+    end
+
+    fp_add uut_2(clk, rst, en, accumulated_value, mult_latch, add_out);
     
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
             accumulated_value <= 0;
+            en <= 1;
+            counter <= 0;
         end
         else begin
-            accumulated_value <= add_out;
+            if (counter == 3'b101) begin
+                accumulated_value <= add_out;
+                counter <= 0;
+                en <= 1;
+            end
+            else begin
+                en <= 0;
+                counter <= counter + 1;
+            end
         end
     end
 

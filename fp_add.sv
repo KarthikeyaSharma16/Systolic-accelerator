@@ -8,6 +8,7 @@ module fp_add
 (
     input logic clk,
     input logic rst,
+    input logic en,
     input logic [31:0] PE_a,
     input logic [31:0] PE_b,
     output logic [31:0] PE_result
@@ -54,23 +55,25 @@ module fp_add
            is_b_zero <= 0;
         end
         else begin
-           sign_a_s1 <= PE_a[31];
-           exp_a_s1 <= PE_a[30:23];
-           mantissa_a_s1 <= {1'b1, PE_a[22:0]};
-           sign_b_s1 <= PE_b[31];
-           exp_b_s1 <= PE_b[30:23];
-           mantissa_b_s1 <= {1'b1, PE_b[22:0]};
+            if (en) begin
+                sign_a_s1 <= PE_a[31];
+                exp_a_s1 <= PE_a[30:23];
+                mantissa_a_s1 <= {1'b1, PE_a[22:0]};
+                sign_b_s1 <= PE_b[31];
+                exp_b_s1 <= PE_b[30:23];
+                mantissa_b_s1 <= {1'b1, PE_b[22:0]};
 
-           is_a_zero <= (PE_a[30:23] == 8'b0 && PE_a[22:0] == 23'b0);
-           is_b_zero <= (PE_b[30:23] == 8'b0 && PE_b[22:0] == 23'b0);
+                is_a_zero <= (PE_a[30:23] == 8'b0 && PE_a[22:0] == 23'b0);
+                is_b_zero <= (PE_b[30:23] == 8'b0 && PE_b[22:0] == 23'b0);
 
-           // Compare original mantissas and store which one is larger
-           if (exp_a_s1 > exp_b_s1 || (exp_a_s1 == exp_b_s1 && mantissa_a_s1 > mantissa_b_s1)) begin
-               larger_mantissa_s1 <= 1;
-           end 
-           else begin
-               larger_mantissa_s1 <= 0;
-           end
+                // Compare original mantissas and store which one is larger
+                if (exp_a_s1 > exp_b_s1 || (exp_a_s1 == exp_b_s1 && mantissa_a_s1 > mantissa_b_s1)) begin
+                    larger_mantissa_s1 <= 1;
+                end 
+                else begin
+                    larger_mantissa_s1 <= 0;
+                end
+            end
         end
     end
 

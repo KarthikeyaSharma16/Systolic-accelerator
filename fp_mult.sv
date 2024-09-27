@@ -7,6 +7,7 @@
 module fp_mult (
     input logic clk,
     input logic rst,
+    input logic en,
     input logic [31:0] a,
     input logic [31:0] b,
     output logic [31:0] result //fp_32 result
@@ -96,15 +97,17 @@ module fp_mult (
             result <= 32'b0;
         end
         else begin
-            //Overflow, underflow conditions
-            if (exp_r_s3 >= 8'hFF) begin
-                result <= {sign_s3, 8'hFF, 23'b0};
-            end
-            else if (exp_r_s3 <= 8'h00) begin
-                result <= {sign_s3, 8'h00, 23'b0};
-            end
-            else begin
-                result <= {sign_s3, exp_r_s3[7:0], mantissa_r_s3[22:0]};
+            if (en) begin
+                //Overflow, underflow conditions
+                if (exp_r_s3 >= 8'hFF) begin
+                    result <= {sign_s3, 8'hFF, 23'b0};
+                end
+                else if (exp_r_s3 <= 8'h00) begin
+                    result <= {sign_s3, 8'h00, 23'b0};
+                end
+                else begin
+                    result <= {sign_s3, exp_r_s3[7:0], mantissa_r_s3[22:0]};
+                end
             end 
         end
     end
