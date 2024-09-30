@@ -8,31 +8,21 @@ module systolic_array (
     output logic [31:0] matrix_C [15:0]
 );
 
-    logic [4:0] ip_counter;
-    logic [5:0] op_counter;
-
     logic [31:0] matrix_A_reg [3:0];
     logic [31:0] matrix_B_reg [3:0];
     logic [31:0] matrix_C_reg [15:0];
 
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
-           ip_counter <= 0; 
            for (int i = 0; i < 4; i++) begin
                 matrix_A_reg[i] <= 0;
                 matrix_B_reg[i] <= 0;
            end
         end
         else begin
-            if (ip_counter == 10) begin
-                for (int i = 0; i < 4; i++) begin
-                    matrix_A_reg[i] <= matrix_A[i];
-                    matrix_B_reg[i] <= matrix_B[i];
-                end
-                ip_counter <= 0;
-            end
-            else begin
-            ip_counter <= ip_counter + 1;
+            for (int i = 0; i < 4; i++) begin
+                matrix_A_reg[i] <= matrix_A[i];
+                matrix_B_reg[i] <= matrix_B[i];
             end
         end
     end
@@ -63,22 +53,13 @@ module systolic_array (
 
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
-           op_counter <= 0;
            for (int i = 0; i < 16; i++) begin
                 matrix_C[i] <= 0;
-                $display("matrix_C[i] = %0x", matrix_C[i]);
            end
         end
         else begin
-            
-            if (op_counter == 40) begin
-                for (int i = 0; i < 16; i++) begin
-                    $display("matrix_C[i] = %0x", matrix_C[i]);
-                    matrix_C[i] <= matrix_C_reg[i];
-                end
-            end
-            else begin
-                op_counter <= op_counter + 1;
+            for (int i = 0; i < 16; i++) begin
+                matrix_C[i] <= matrix_C_reg[i];
             end
         end
     end
