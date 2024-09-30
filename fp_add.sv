@@ -9,10 +9,13 @@ module fp_add
     input logic clk,
     input logic rst,
     input logic en,
-    input logic [31:0] PE_a,
-    input logic [31:0] PE_b,
-    output logic [31:0] PE_result
+    input logic [31:0] a,
+    input logic [31:0] b,
+    output logic [31:0] sum,
+    output logic ready
 );
+
+    logic [2:0] counter;
 
     //Pipeline registers
     //Stage-1
@@ -53,18 +56,19 @@ module fp_add
            larger_mantissa_s1 <= 0;
            is_a_zero <= 0;
            is_b_zero <= 0;
+           counter <= 0;
         end
         else begin
             if (en) begin
-                sign_a_s1 <= PE_a[31];
-                exp_a_s1 <= PE_a[30:23];
-                mantissa_a_s1 <= {1'b1, PE_a[22:0]};
-                sign_b_s1 <= PE_b[31];
-                exp_b_s1 <= PE_b[30:23];
-                mantissa_b_s1 <= {1'b1, PE_b[22:0]};
+                sign_a_s1 <= a[31];
+                exp_a_s1 <= a[30:23];
+                mantissa_a_s1 <= {1'b1, a[22:0]};
+                sign_b_s1 <= b[31];
+                exp_b_s1 <= b[30:23];
+                mantissa_b_s1 <= {1'b1, b[22:0]};
 
-                is_a_zero <= (PE_a[30:23] == 8'b0 && PE_a[22:0] == 23'b0);
-                is_b_zero <= (PE_b[30:23] == 8'b0 && PE_b[22:0] == 23'b0);
+                is_a_zero <= (a[30:23] == 8'b0 && a[22:0] == 23'b0);
+                is_b_zero <= (b[30:23] == 8'b0 && b[22:0] == 23'b0);
 
                 // Compare original mantissas and store which one is larger
                 if (exp_a_s1 > exp_b_s1 || (exp_a_s1 == exp_b_s1 && mantissa_a_s1 > mantissa_b_s1)) begin
@@ -73,6 +77,13 @@ module fp_add
                 else begin
                     larger_mantissa_s1 <= 0;
                 end
+            end
+
+            if (counter <= 3'b100) begin
+                counter <= counter + 1;
+            end
+            else begin
+                counter <= 0;
             end
         end
     end
@@ -162,30 +173,42 @@ module fp_add
     //Stage-5 : final result
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
-            PE_result <= 0;
+            sum <= 0;
+            ready <= 1;
         end
         else begin
-            if (exp_r_s4 == 8'b0 && mantissa_r_s4 == 24'b0) begin
-                if (is_a_zero && is_b_zero) begin
-                    PE_result <= 32'b0;
+            if (counter == 3'b100) begin
+                if (exp_r_s4 == 8'b0 && mantissa_r_s4 == 24'b0) begin
+                    if (is_a_zero && is_b_zero) begin
+                        sum <= 32'b0;
+                        ready <= 1;
+                    end
+                    else if (is_a_zero) begin
+                        sum <= {sign_b_s1, 31'b0};
+                        ready <= 1;
+                    end
+                    else if (is_b_zero) begin
+                        sum <= {sign_a_s1, 31'b0};
+                        ready <= 1;
+                    end 
                 end
-                else if (is_a_zero) begin
-                    PE_result <= {sign_b_s1, 31'b0};
-                end
-                else if (is_b_zero) begin
-                    PE_result <= {sign_a_s1, 31'b0};
+                else begin
+                    if (exp_r_s4 > 8'hFF) begin
+                        sum <= {sign_r_s4, 8'hFF, 23'b0};
+                        ready <= 1;
+                    end
+                    else if (exp_r_s4 < 8'h00) begin
+                        sum <= {sign_r_s4, 8'h00, 23'b0};
+                        ready <= 1;
+                    end
+                    else begin
+                        sum <= {sign_r_s4, exp_r_s4[7:0], mantissa_r_s4[22:0]};
+                        ready <= 1; 
+                    end
                 end 
             end
             else begin
-                if (exp_r_s4 > 8'hFF) begin
-                    PE_result <= {sign_r_s4, 8'hFF, 23'b0};
-                end
-                else if (exp_r_s4 < 8'h00) begin
-                    PE_result <= {sign_r_s4, 8'h00, 23'b0};
-                end
-                else begin
-                    PE_result <= {sign_r_s4, exp_r_s4[7:0], mantissa_r_s4[22:0]}; 
-                end
+                ready <= 0;
             end
         end
     end

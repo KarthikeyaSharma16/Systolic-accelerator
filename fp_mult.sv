@@ -10,8 +10,11 @@ module fp_mult (
     input logic en,
     input logic [31:0] a,
     input logic [31:0] b,
-    output logic [31:0] result //fp_32 result
+    output logic [31:0] result, //fp_32 result
+    output logic ready
 );
+
+    logic [2:0] counter;
 
     //Declaring pipeline stages registers
     //Stage-1 registers/latches
@@ -38,14 +41,24 @@ module fp_mult (
             exp_b_s1 <= 8'b0;
             mantissa_a_s1 <= 24'b0;
             mantissa_b_s1 <= 24'b0;
+            counter <= 0;
         end
         else begin
-            sign_a_s1 <= a[31];
-            sign_b_s1 <= b[31];
-            exp_a_s1 <= a[30:23];
-            exp_b_s1 <= b[30:23];
-            mantissa_a_s1 <= {1'b1, a[22:0]};
-            mantissa_b_s1 <= {1'b1, b[22:0]};
+            if (en) begin
+                sign_a_s1 <= a[31];
+                sign_b_s1 <= b[31];
+                exp_a_s1 <= a[30:23];
+                exp_b_s1 <= b[30:23];
+                mantissa_a_s1 <= {1'b1, a[22:0]};
+                mantissa_b_s1 <= {1'b1, b[22:0]};
+            end
+
+            if (counter <= 3'b011) begin
+                counter <= counter + 1;
+            end 
+            else begin
+                counter <= 0;
+            end
         end
     end
     
@@ -95,20 +108,27 @@ module fp_mult (
     always @(posedge clk or negedge rst) begin
         if (!rst) begin
             result <= 32'b0;
+            ready <= 1;
         end
         else begin
-            if (en) begin
-                //Overflow, underflow conditions
+            //Overflow, underflow conditions
+            if (counter == 3'b011) begin
                 if (exp_r_s3 >= 8'hFF) begin
                     result <= {sign_s3, 8'hFF, 23'b0};
+                    ready <= 1;
                 end
                 else if (exp_r_s3 <= 8'h00) begin
                     result <= {sign_s3, 8'h00, 23'b0};
+                    ready <= 1;
                 end
                 else begin
                     result <= {sign_s3, exp_r_s3[7:0], mantissa_r_s3[22:0]};
-                end
-            end 
+                    ready <= 1;
+                end    
+            end
+            else begin
+               ready <= 0; 
+            end
         end
     end
     

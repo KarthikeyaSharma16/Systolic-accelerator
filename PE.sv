@@ -11,13 +11,21 @@ module PE (
     logic [31:0] accumulated_value;
     logic [31:0] mult_out;
     logic [31:0] add_out;
-    logic en;
-    logic [2:0] counter;
+    logic en_mult;
+    logic en_add;
+    logic ready_mult;
+    logic ready_add;
 
     //pipeline latch
     logic [31:0] mult_latch;
 
-    fp_mult uut_1(clk, rst, en, PE_in_a, PE_in_b, mult_out);
+    fp_mult uut_1(.clk(clk), 
+                  .rst(rst), 
+                  .en(en_mult), 
+                  .a(PE_in_a), 
+                  .b(PE_in_b), 
+                  .result(mult_out),
+                  .ready(ready_mult));
 
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
@@ -28,23 +36,34 @@ module PE (
         end   
     end
 
-    fp_add uut_2(clk, rst, en, accumulated_value, mult_latch, add_out);
+    fp_add uut_2(.clk(clk), 
+                 .rst(rst), 
+                 .en(en_add), 
+                 .a(accumulated_value), 
+                 .b(mult_latch), 
+                 .sum(add_out),
+                 .ready(ready_add));
     
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
             accumulated_value <= 0;
-            en <= 1;
-            counter <= 0;
+            en_mult <= 1;
+            en_add <= 1;
         end
         else begin
-            if (counter == 3'b101) begin
-                accumulated_value <= add_out;
-                counter <= 0;
-                en <= 1;
+            if (ready_mult) begin
+                en_mult <= 1;
             end
             else begin
-                en <= 0;
-                counter <= counter + 1;
+               en_mult <= 0; 
+            end
+
+            if (ready_add) begin
+                en_add <= 1;
+                accumulated_value <= add_out;
+            end
+            else begin
+                en_add <= 0;
             end
         end
     end

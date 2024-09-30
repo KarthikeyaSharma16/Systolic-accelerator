@@ -20,27 +20,27 @@ module tb_PE;
     rst = 1;
   end
 
-  initial begin
-    $monitor("Time = %0t | clk = %b | rst = %0b | PE_a = %0x, PE_b = %0x, PE_r = %0x", $time, clk, rst, PE_a, PE_b, PE_r);
-  end
+  // initial begin
+  //   $monitor("Time = %0t | clk = %b | rst = %0b | PE_a = %0x, PE_b = %0x, PE_r = %0x", $time, clk, rst, PE_a, PE_b, PE_r);
+  // end
 
   // Apply inputs
   initial begin
     PE_a = 32'b0; PE_b = 32'b0;
     
     repeat(5) @(posedge clk);
-    PE_a = 32'b01000000000000000000000000000000; PE_b = 32'h41000000;
+    PE_a = 32'h40000000; PE_b = 32'h40000000; //4
 
     repeat(5) @(posedge clk);
-    PE_a = 32'h40800000; PE_b = 32'h41000000;
+    PE_a = 32'h40800000; PE_b = 32'h40800000; //4+16
+
+    repeat(5) @(posedge clk); 
+    PE_a = 32'h41000000; PE_b = 32'h41000000; //4+16+64
 
     repeat(5) @(posedge clk);
-    PE_a = 32'h41000000; PE_b = 32'h41000000;
+    PE_a = 32'h41800000; PE_b = 32'h41800000; //4+16+64+256
 
-    repeat(5) @(posedge clk);
-    PE_a = 32'h41800000; PE_b = 32'h41000000;
-
-    #400;
+    #500;
     $finish();
   end
 
