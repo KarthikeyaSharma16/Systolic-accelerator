@@ -1,6 +1,6 @@
 #!/bin/bash
-echo "Generating Floating point inputs for testing.."
-python3 fp_conversion.py
+# echo "Generating Floating point inputs for testing.."
+# python3 fp_conversion.py
 
 OUTPUT_DIR="outputs"
 

@@ -1,7 +1,9 @@
 import re
 import random
 
-with open('tb_fp_add.sv', 'r') as file:
+#TODO : Change support for 0b to 0h inputs.
+
+with open('tb_systolic_array.sv', 'r') as file:
     content = file.read()
 
 """
@@ -62,5 +64,5 @@ if __name__ == "__main__":
         content = content.replace(match,new_assignment,1)
 
     # Write the modified content back to the file
-    with open('tb_fp_add.sv', 'w') as file:
+    with open('tb_systolic_array_2.sv', 'w') as file:
         file.write(content)
