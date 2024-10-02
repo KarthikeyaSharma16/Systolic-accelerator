@@ -27,29 +27,19 @@ module systolic_array (
         end
     end
 
-    //Row-1
-    PE uut_1(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[0]), .PE_in_b(matrix_B_reg[0]), .PE_out_r(matrix_C_reg[0]));
-    PE uut_2(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[0]), .PE_in_b(matrix_B_reg[1]), .PE_out_r(matrix_C_reg[1]));
-    PE uut_3(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[0]), .PE_in_b(matrix_B_reg[2]), .PE_out_r(matrix_C_reg[2]));
-    PE uut_4(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[0]), .PE_in_b(matrix_B_reg[3]), .PE_out_r(matrix_C_reg[3]));
-    
-    //Row-2
-    PE uut_6(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[1]), .PE_in_b(matrix_B_reg[1]), .PE_out_r(matrix_C_reg[5]));
-    PE uut_7(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[1]), .PE_in_b(matrix_B_reg[2]), .PE_out_r(matrix_C_reg[6]));
-    PE uut_5(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[1]), .PE_in_b(matrix_B_reg[0]), .PE_out_r(matrix_C_reg[4]));
-    PE uut_8(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[1]), .PE_in_b(matrix_B_reg[3]), .PE_out_r(matrix_C_reg[7]));
-    
-    //Row-3
-    PE uut_9(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[2]), .PE_in_b(matrix_B_reg[0]), .PE_out_r(matrix_C_reg[8]));
-    PE uut_10(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[2]), .PE_in_b(matrix_B_reg[1]), .PE_out_r(matrix_C_reg[9]));
-    PE uut_11(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[2]), .PE_in_b(matrix_B_reg[2]), .PE_out_r(matrix_C_reg[10]));
-    PE uut_12(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[2]), .PE_in_b(matrix_B_reg[3]), .PE_out_r(matrix_C_reg[11]));
-    
-    //Row-4
-    PE uut_13(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[3]), .PE_in_b(matrix_B_reg[0]), .PE_out_r(matrix_C_reg[12]));
-    PE uut_14(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[3]), .PE_in_b(matrix_B_reg[1]), .PE_out_r(matrix_C_reg[13]));
-    PE uut_15(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[3]), .PE_in_b(matrix_B_reg[2]), .PE_out_r(matrix_C_reg[14]));
-    PE uut_16(.clk(clk), .rst(rst), .PE_in_a(matrix_A_reg[3]), .PE_in_b(matrix_B_reg[3]), .PE_out_r(matrix_C_reg[15]));
+    //Used generate statements to initialize the PE blocks.
+    genvar i, j;
+    generate
+        for (i = 0; i < 4; i++) begin
+            for (j = 0; j < 4; j++) begin
+               PE uut(.clk(clk), 
+                      .rst(rst), 
+                      .PE_in_a(matrix_A_reg[i]), 
+                      .PE_in_b(matrix_B_reg[j]), 
+                      .PE_out_r(matrix_C_reg[i * 4 + j]));
+            end
+        end
+    endgenerate
 
     always@(posedge clk or negedge rst) begin
         if (!rst) begin
